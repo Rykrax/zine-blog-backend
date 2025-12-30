@@ -3,7 +3,7 @@ import {
     createUserService,
     loginService,
     logoutService,
-    // refreshTokenService 
+    refreshTokenService
 } from "../service/userService.js";
 
 const createUser = async (req, res) => {
@@ -61,32 +61,32 @@ const handleLogout = async (req, res) => {
     }
 }
 
-// const refreshToken = async (req, res) => {
-//     try {
-//         const { accessToken } = await refreshTokenService(req);
+const refreshToken = async (req, res) => {
+    try {
+        const { accessToken } = await refreshTokenService(req);
 
-//         const isProd = process.env.NODE_ENV === 'production';
-//         res.cookie('access_token', accessToken, {
-//             httpOnly: true,
-//             secure: isProd,
-//             sameSite: isProd ? 'none' : 'lax',
-//             maxAge: ms('7d')
-//         });
-//         res.status(200).json({
-//             message: "Refresh token successful",
-//             data: {
-//                 accessToken,
-//             }
-//         });
-//     } catch (err) {
-//         console.log(err);
-//         return res.status(err.status).json({ message: err.message });
-//     }
-// }
+        const isProd = process.env.NODE_ENV === 'production';
+        res.cookie('access_token', accessToken, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: isProd ? 'none' : 'lax',
+            maxAge: ms('7d')
+        });
+        res.status(200).json({
+            message: "Refresh token successful",
+            data: {
+                accessToken,
+            }
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(err.status).json({ message: err.message });
+    }
+}
 
 export const userController = {
     createUser,
     handleLogin,
     handleLogout,
-    // refreshToken
+    refreshToken
 }

@@ -116,38 +116,38 @@ const logoutService = async (res) => {
     }
 }
 
-// const refreshTokenService = async (req) => {
-//     try {
-//         const refreshTokenFromCookie = req?.cookies?.refresh_token;
+const refreshTokenService = async (req) => {
+    try {
+        const refreshTokenFromCookie = req?.cookies?.refresh_token;
 
-//         const decoder = await jwtProvider.verifyToken(
-//             refreshTokenFromCookie,
-//             process.env.REFRESH_TOKEN
-//         )
-//         console.log(decoder);
-//         const payload = {
-//             user_id: decoder.user_id,
-//             username: decoder.username,
-//             email: decoder.email
-//         }
-//         const access_token = await jwtProvider.generateToken(
-//             payload,
-//             process.env.ACCESS_TOKEN,
-//             process.env.ACCESS_TOKEN_EXPIRE
-//         );
-//         return {
-//             // user: payload,
-//             accessToken: access_token,
-//         }
-//     } catch (err) {
-//         console.log(err.message);
-//         throw new ApiError(401, "Refresh token không hợp lệ hoặc hết hạn!");
-//     }
-// }
+        const decoder = await jwtProvider.verifyToken(
+            refreshTokenFromCookie,
+            process.env.REFRESH_TOKEN
+        )
+        // console.log("Decoder: ", decoder);
+        const payload = {
+            user_id: decoder.user_id,
+            username: decoder.username,
+            email: decoder.email
+        }
+        const access_token = await jwtProvider.generateToken(
+            payload,
+            process.env.ACCESS_TOKEN,
+            process.env.ACCESS_TOKEN_EXPIRE
+        );
+        return {
+            // user: payload,
+            accessToken: access_token,
+        }
+    } catch (err) {
+        console.log(err.message);
+        throw new ApiError(401, "Refresh token không hợp lệ hoặc hết hạn!");
+    }
+}
 
 export {
     createUserService,
     loginService,
     logoutService,
-    // refreshTokenService
+    refreshTokenService
 }

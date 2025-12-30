@@ -13,7 +13,7 @@ router.get("/test-api", (req, res) => {
 router.post("/register", userController.createUser);
 router.post("/login", userController.handleLogin);
 router.delete("/logout", userController.handleLogout);
-// router.put("/refresh-token", userController.refreshToken);
+router.put("/refresh-token", userController.refreshToken);
 
 // Protected route
 
