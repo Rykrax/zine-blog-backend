@@ -26,7 +26,7 @@ const createPostService = async (data) => {
     });
 };
 
-const getAllPostService = async (user_id, query) => {
+const getAllPostByIdService = async (user_id, query) => {
     return await paginate({
         model: Post,
         query: { author: user_id },
@@ -40,7 +40,26 @@ const getAllPostService = async (user_id, query) => {
     });
 };
 
+const getAllPostService = async (query) => {
+    return await paginate({
+        model: Post,
+        page: query.page,
+        limit: query.limit,
+        sort: { createdAt: -1 },
+        populate: {
+            path: "author",
+            select: "username avatar"
+        }
+    });
+};
+
+const getPostDetailService = async (slug) => {
+    const post = await Post.findOne({ slug, is_published: true }).populate("author", "username avatar bio");
+    return post;
+}
+
 export const postService = {
     createPostService,
-    getAllPostService
+    getAllPostService,
+    getPostDetailService
 };

@@ -15,7 +15,8 @@ const PostSchema = new Schema({
     thumbnail: String,
     author: {
         type: Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        index: true
     },
     stats: {
         views: { type: Number, default: 0 },

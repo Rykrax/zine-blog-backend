@@ -32,15 +32,30 @@ const createPost = async (req, res) => {
     }
 };
 
+// const getPosts = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         console.log(id);
+//         const posts = await postService.getAllPostService(id, req.query);
+//         // return res.status(StatusCodes.OK).json({
+//         //     message: "Load dữ liệu thành công",
+//         //     data: posts
+//         // });
+//         return res.status(StatusCodes.OK).json({
+//             message: "Load dữ liệu thành công",
+//             data: posts.items,
+//             pagination: posts.pagination
+//         });
+//     } catch (error) {
+//         return res.status(StatusCodes.BAD_REQUEST).json({
+//             message: error.message
+//         });
+//     }
+// }
+
 const getPosts = async (req, res) => {
     try {
-        const { id } = req.params;
-        console.log(id);
-        const posts = await postService.getAllPostService(id, req.query);
-        // return res.status(StatusCodes.OK).json({
-        //     message: "Load dữ liệu thành công",
-        //     data: posts
-        // });
+        const posts = await postService.getAllPostService(req.query);
         return res.status(StatusCodes.OK).json({
             message: "Load dữ liệu thành công",
             data: posts.items,
@@ -53,7 +68,30 @@ const getPosts = async (req, res) => {
     }
 }
 
+const getPostDetail = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const post = await postService.getPostDetailService(slug);
+        if (!post) {
+            return res.status(StatusCodes.NOT_FOUND).json({
+                message: "Bài viết không tồn tại"
+            });
+        }
+
+        res.status(StatusCodes.OK).json({
+            message: "Load dữ liệu thành công",
+            data: post
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: "Lỗi server"
+        });
+    }
+}
+
 export const postController = {
     createPost,
-    getPosts
+    getPosts,
+    getPostDetail
 };
