@@ -5,9 +5,9 @@ import { jwtProvider } from '../provider/jwtProvider.js';
 import ApiError from '../util/apiError.js';
 import { EMAIL_REGEX, PASSWORD_REGEX } from '../util/regex.js';
 import bcrypt from 'bcrypt';
-const saltRounds = 10;
 import 'dotenv/config'
 import mongoose from 'mongoose';
+const saltRounds = 10;
 
 const createUserService = async (username, email, password) => {
     if (!username || !email || !password) {

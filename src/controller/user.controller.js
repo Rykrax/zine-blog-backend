@@ -1,7 +1,5 @@
 import ms from "ms";
-import {
-    userService
-} from "../service/user.service.js";
+import { userService } from "../service/user.service.js";
 import { StatusCodes } from "http-status-codes";
 
 const createUser = async (req, res) => {

@@ -1,21 +1,17 @@
 import express from 'express'
-import { userController } from '../../controller/user.controller.js';
+import { userController } from "../../controller/user.controller.js";
 import { authMiddleware } from '../../middleware/authMiddleware.js';
+import { cloudinaryController } from '../../controller/cloudinary.controller.js';
 
 const router = express.Router();
 
-router.get("/test-api", (req, res) => {
-    res.send("Test API");
-})
-
-// Public route
-
 router.post("/register", userController.createUser);
-router.post("/login", userController.login);
-router.delete("/logout", userController.logout);
-router.put("/refresh-token", userController.refreshToken);
 
-// Protected route
+router.post("/login", userController.login);
+
+router.delete("/logout", userController.logout);
+
+router.put("/refresh-token", userController.refreshToken);
 
 router.get("/access", authMiddleware.isAuthorized, (req, res) => {
     res.json({
@@ -23,7 +19,10 @@ router.get("/access", authMiddleware.isAuthorized, (req, res) => {
     });
 })
 
-router.get("/users", authMiddleware.isAuthorized, userController.getUsers);
-router.get("/users/:id", authMiddleware.isAuthorized, userController.getUserById);
+router.get(
+    "/cloudinary-sign",
+    authMiddleware.isAuthorized,
+    cloudinaryController.getUploadSignature
+);
 
 export default router;
