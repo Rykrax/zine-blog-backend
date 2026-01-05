@@ -60,7 +60,8 @@ const loginService = async (email, password) => {
         const payload = {
             user_id: user._id.toString(),
             username: user.username,
-            email: user.email
+            email: user.email,
+            role: user.role
         }
 
         const access_token = await jwtProvider.generateToken(
@@ -87,6 +88,33 @@ const loginService = async (email, password) => {
             refreshToken: refresh_token
         }
     }
+}
+
+const changePasswordService = async (user_id, oldPassword, newPassword) => {
+    if (!oldPassword || !newPassword) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Thiếu dữ liệu");
+    }
+    if (!PASSWORD_REGEX.test(newPassword)) {
+        throw new ApiError(400, "Mật khẩu mới cần từ 6 ký tự gồm chữ hoa, thường và số.");
+    }
+
+    if (oldPassword === newPassword) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Mật khẩu mới trùng với mật khẩu cũ");
+    }
+
+    const user = await User.findById(user_id);
+    console.log(user);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Người dùng không tồn tại");
+    }
+    const isMatching = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatching) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, "Mật khẩu cũ không chính xác");
+    }
+    const password_hash = await bcrypt.hash(newPassword, saltRounds);
+    user.password = password_hash;
+    await user.save();
+    return true;
 }
 
 // const logoutService = async (res) => {
@@ -158,6 +186,7 @@ const getUserByIdService = async (_id) => {
 export const userService = {
     createUserService,
     loginService,
+    changePasswordService,
     refreshTokenService,
     getAllUserService,
     getUserByIdService

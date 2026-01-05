@@ -68,6 +68,21 @@ const logout = async (req, res) => {
     });
 };
 
+const changePassword = async (req, res) => {
+    try {
+        const user_id = req.jwtDecoder.user_id;
+        const { oldPassword, newPassword } = req.body;
+        await userService.changePasswordService(user_id, oldPassword, newPassword);
+        return res.status(StatusCodes.OK).json({
+            message: "Đổi mật khẩu thành công"
+        })
+    } catch (error) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: error.message || "Đổi mật khẩu thất bại"
+        })
+    }
+}
+
 const refreshToken = async (req, res) => {
     try {
         const refreshTokenFromCookie = req.cookies?.refresh_token;
@@ -121,6 +136,7 @@ export const userController = {
     createUser,
     login,
     logout,
+    changePassword,
     refreshToken,
     getUsers,
     getUserById
