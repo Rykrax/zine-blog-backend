@@ -41,8 +41,14 @@ const getAllPostByIdService = async (user_id, query) => {
 };
 
 const getAllPostService = async (query) => {
+    const filter = {};
+    if (query.author) {
+        filter.author = query.author;
+    }
+    filter.is_published = 'true';
     return await paginate({
         model: Post,
+        query: filter,
         page: query.page,
         limit: query.limit,
         sort: { createdAt: -1 },

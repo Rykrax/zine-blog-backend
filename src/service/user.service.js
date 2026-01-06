@@ -1,6 +1,7 @@
 // import RefreshToken from '../model/refreshToken.js';
 import { StatusCodes } from 'http-status-codes';
 import User from '../model/user.js'
+import Post from '../model/post.js'
 import { jwtProvider } from '../provider/jwtProvider.js';
 import ApiError from '../util/apiError.js';
 import { EMAIL_REGEX, PASSWORD_REGEX } from '../util/regex.js';
@@ -175,12 +176,65 @@ const getUserByIdService = async (_id) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, "User Id không hợp lệ");
     }
 
-    const user = await User.findById(_id).select("-password");
+    const user = await User
+        .findById(_id)
+        .select("-password")
+        .populate({
+            path: 'saved_posts',
+            select: 'title slug thumbnail createdAt stats content'
+        });;
 
     if (!user) {
         throw new ApiError(StatusCodes.NOT_FOUND, "User không tồn tại");
     }
     return user;
+}
+
+const getMeService = async (user_id) => {
+    const user = await User
+        .findById(user_id)
+        .select("_id email username avatar role bio saved_posts")
+        .lean();
+    if (!user) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User Id không hợp lệ");
+    }
+    return {
+        ...user,
+        _id: user._id.toString()
+    };
+}
+
+const toggleSavePostService = async (user_id, post_id) => {
+    if (!mongoose.Types.ObjectId.isValid(post_id)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Post ID không hợp lệ");
+    }
+    const post = await Post.findById(post_id);
+    if (!post) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Bài viết không tồn tại");
+    }
+    const user = await User.findById(user_id);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Người dùng không tồn tại");
+    }
+    const isSaved = user.saved_posts.some(id => id.toString() === post_id);
+
+    if (isSaved) {
+        await User.findByIdAndUpdate(user_id, {
+            $pull: { saved_posts: post_id }
+        });
+        return {
+            status: 'unsaved',
+            message: "Đã bỏ lưu bài viết"
+        };
+    } else {
+        await User.findByIdAndUpdate(user_id, {
+            $addToSet: { saved_posts: post_id }
+        });
+        return {
+            status: 'saved',
+            message: "Đã lưu bài viết"
+        };
+    }
 }
 
 export const userService = {
@@ -189,5 +243,7 @@ export const userService = {
     changePasswordService,
     refreshTokenService,
     getAllUserService,
-    getUserByIdService
+    getUserByIdService,
+    getMeService,
+    toggleSavePostService
 }

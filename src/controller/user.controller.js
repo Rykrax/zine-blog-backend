@@ -132,6 +132,43 @@ const getUserById = async (req, res) => {
     }
 }
 
+const getMe = async (req, res) => {
+    try {
+        console.log(req.jwtDecoder);
+        const user = await userService.getMeService(req.jwtDecoder.user_id);
+        return res.status(StatusCodes.OK).json({
+            user
+        })
+    } catch (error) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: error.message || "Lỗi server"
+        })
+    }
+}
+
+const toggleSavePost = async (req, res) => {
+    try {
+        const user_id = req.jwtDecoder.user_id;
+        const { postId } = req.body;
+
+        if (!postId) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                message: "Vui lòng cung cấp postId"
+            });
+        }
+        const result = await userService.toggleSavePostService(user_id, postId);
+
+        return res.status(StatusCodes.OK).json({
+            message: result.message,
+            status: result.status
+        });
+    } catch (error) {
+        return res.status(error.status || StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: error.message || "Lỗi server"
+        });
+    }
+}
+
 export const userController = {
     createUser,
     login,
@@ -139,5 +176,7 @@ export const userController = {
     changePassword,
     refreshToken,
     getUsers,
-    getUserById
+    getUserById,
+    getMe,
+    toggleSavePost
 }
