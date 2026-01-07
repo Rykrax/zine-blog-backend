@@ -150,12 +150,13 @@ const refreshTokenService = async (refreshToken) => {
         const payload = {
             user_id: decoder.user_id,
             username: decoder.username,
-            email: decoder.email
+            email: decoder.email,
+            role: decoder.role
         }
         const access_token = await jwtProvider.generateToken(
             payload,
             process.env.ACCESS_TOKEN,
-            process.env.ACCESS_TOKEN_EXPIRE
+            process.env.ACCESS_TOKEN_EXPIRE,
         );
         return {
             // user: payload,
@@ -168,7 +169,7 @@ const refreshTokenService = async (refreshToken) => {
 }
 
 const getAllUserService = async () => {
-    return await User.find().select("-password");
+    return await User.find({ isDeleted: { $ne: true } }).select("-password");
 }
 
 const getUserByIdService = async (_id) => {
@@ -219,21 +220,50 @@ const toggleSavePostService = async (user_id, post_id) => {
     const isSaved = user.saved_posts.some(id => id.toString() === post_id);
 
     if (isSaved) {
-        await User.findByIdAndUpdate(user_id, {
-            $pull: { saved_posts: post_id }
-        });
+        await Promise.all([
+            User.updateOne(
+                { _id: user_id },
+                { $pull: { saved_posts: post_id } }
+            ),
+            Post.updateOne(
+                { _id: post_id },
+                { $inc: { "stats.likes": -1 } }
+            )
+        ])
         return {
             status: 'unsaved',
             message: "Đã bỏ lưu bài viết"
         };
     } else {
-        await User.findByIdAndUpdate(user_id, {
-            $addToSet: { saved_posts: post_id }
-        });
+        await Promise.all([
+            User.updateOne(
+                { _id: user_id },
+                { $addToSet: { saved_posts: post_id } }
+            ),
+            Post.updateOne(
+                { _id: post_id },
+                { $inc: { "stats.likes": 1 } }
+            )
+        ])
         return {
             status: 'saved',
             message: "Đã lưu bài viết"
         };
+    }
+}
+
+const deleteUserService = async (user_id) => {
+    const user = await User.findById(user_id);
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+    await User.findByIdAndUpdate(
+        user_id,
+        { isDeleted: true, deletedAt: new Date() },
+        { new: true }
+    )
+    return {
+        message: "Xóa thành công"
     }
 }
 
@@ -245,5 +275,6 @@ export const userService = {
     getAllUserService,
     getUserByIdService,
     getMeService,
-    toggleSavePostService
+    toggleSavePostService,
+    deleteUserService
 }
