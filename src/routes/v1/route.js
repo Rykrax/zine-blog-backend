@@ -3,7 +3,6 @@ import authRoutes from './auth.route.js'
 import userRoutes from './user.route.js'
 import postRoutes from './post.route.js'
 import adminRoutes from './admin.route.js'
-import 'dotenv/config'
 
 const router = express.Router();
 

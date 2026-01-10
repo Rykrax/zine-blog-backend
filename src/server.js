@@ -5,9 +5,10 @@ import router_v1 from './routes/v1/route.js';
 import connection from './config/mongodb.js'
 import { corsOptions } from './config/corsOptions.js';
 import cookieParser from "cookie-parser";
+import { env } from './config/environment.js'
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = env.PORT || 8080;
 
 app.use(cookieParser());
 app.use(cors(corsOptions));
