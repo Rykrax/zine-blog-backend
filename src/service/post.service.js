@@ -2,6 +2,8 @@ import Post from "../model/post.js";
 import { generateUniqueSlug } from "../util/slug.js";
 import { paginate } from "../util/paginate.js";
 import User from "../model/user.js";
+import ApiError from "../util/ApiError.js";
+import { StatusCodes } from "http-status-codes";
 
 const createPostService = async (data) => {
     const {
@@ -12,10 +14,15 @@ const createPostService = async (data) => {
         author
     } = data;
 
-    if (!data.thumbnail) {
-        throw new Error("Thiếu thumbnail");
+    if (!title || !content) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Thiếu tiêu đề hoặc nội dung");
     }
-    const slug = await generateUniqueSlug(data.title);
+
+    if (!thumbnail || typeof thumbnail !== 'string' || !thumbnail.trim()) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Thumbnail không hợp lệ");
+    }
+
+    const slug = await generateUniqueSlug(title);
 
     return await Post.create({
         title,

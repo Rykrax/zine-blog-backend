@@ -11,4 +11,5 @@ export const env = {
     CLOUDINARY_NAME: process.env.CLOUDINARY_NAME,
     CLOUDINARY_KEY: process.env.CLOUDINARY_KEY,
     CLOUDINARY_SECRET: process.env.CLOUDINARY_SECRET,
+    BUILD_MODE: process.env.BUILD_MODE
 }

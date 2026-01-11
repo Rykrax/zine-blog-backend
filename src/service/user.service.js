@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import User from '../model/user.js'
 import Post from '../model/post.js'
 import { jwtProvider } from '../provider/jwtProvider.js';
-import ApiError from '../util/apiError.js';
+import ApiError from '../util/ApiError.js';
 import { EMAIL_REGEX, PASSWORD_REGEX } from '../util/regex.js';
 import bcrypt from 'bcrypt';
 import 'dotenv/config'
@@ -12,15 +12,15 @@ const saltRounds = 10;
 
 const createUserService = async (username, email, password) => {
     if (!username || !email || !password) {
-        throw new ApiError(400, "Vui lòng điền đầy đủ thông tin!");
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Vui lòng điền đầy đủ thông tin!");
     }
 
     if (!EMAIL_REGEX.test(email)) {
-        throw new ApiError(400, "Email không đúng định dạng!");
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Email không đúng định dạng!");
     }
 
     if (!PASSWORD_REGEX.test(password)) {
-        throw new ApiError(400, "Mật khẩu cần từ 6 ký tự gồm chữ hoa, thường và số.");
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Mật khẩu cần từ 6 ký tự gồm chữ hoa, thường và số.");
     }
 
     const exitsUser = await User.findOne({
@@ -32,9 +32,9 @@ const createUserService = async (username, email, password) => {
 
     if (exitsUser) {
         if (exitsUser.email === email) {
-            throw new ApiError(409, "Email đã tồn tại!");
+            throw new ApiError(StatusCodes.CONFLICT, "Email đã tồn tại!");
         } else {
-            throw new ApiError(409, "Tên đăng nhập đã tồn tại!");
+            throw new ApiError(StatusCodes.CONFLICT, "Tên đăng nhập đã tồn tại!");
         }
     }
 
@@ -96,13 +96,16 @@ const changePasswordService = async (user_id, oldPassword, newPassword) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Thiếu dữ liệu");
     }
     if (!PASSWORD_REGEX.test(newPassword)) {
-        throw new ApiError(400, "Mật khẩu mới cần từ 6 ký tự gồm chữ hoa, thường và số.");
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Mật khẩu mới cần từ 6 ký tự gồm chữ hoa, thường và số.");
     }
 
     if (oldPassword === newPassword) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Mật khẩu mới trùng với mật khẩu cũ");
     }
 
+    if (!mongoose.Types.ObjectId.isValid(user_id)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User ID không hợp lệ");
+    }
     const user = await User.findById(user_id);
     console.log(user);
     if (!user) {
@@ -255,7 +258,7 @@ const toggleSavePostService = async (user_id, post_id) => {
 const deleteUserService = async (user_id) => {
     const user = await User.findById(user_id);
     if (!user) {
-        throw new ApiError(404, "User not found");
+        throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
     }
     await User.findByIdAndUpdate(
         user_id,

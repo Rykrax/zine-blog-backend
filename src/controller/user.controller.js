@@ -2,19 +2,16 @@ import ms from "ms";
 import { userService } from "../service/user.service.js";
 import { StatusCodes } from "http-status-codes";
 
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
         const data = await userService.createUserService(username, email, password);
-        console.log(data);
+        // console.log(data);
         return res.status(StatusCodes.CREATED).json({ message: "Tạo tài khoản thành công!" });
-    } catch (err) {
-        console.log(err);
-        return res.status(err.status).json({ message: err.message });
-    }
+    } catch (err) { next(err) }
 }
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         const { user, accessToken, refreshToken } = await userService.loginService(email, password);
@@ -42,10 +39,7 @@ const login = async (req, res) => {
                 refreshToken
             }
         });
-    } catch (err) {
-        console.log(err);
-        return res.status(err.status).json({ message: err.message });
-    }
+    } catch (err) { next(err) }
 }
 
 const logout = async (req, res) => {
@@ -68,7 +62,7 @@ const logout = async (req, res) => {
     });
 };
 
-const changePassword = async (req, res) => {
+const changePassword = async (req, res, next) => {
     try {
         const user_id = req.jwtDecoder.user_id;
         const { oldPassword, newPassword } = req.body;
@@ -76,14 +70,10 @@ const changePassword = async (req, res) => {
         return res.status(StatusCodes.OK).json({
             message: "Đổi mật khẩu thành công"
         })
-    } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            message: error.message || "Đổi mật khẩu thất bại"
-        })
-    }
+    } catch (err) { next(err); }
 }
 
-const refreshToken = async (req, res) => {
+const refreshToken = async (req, res, next) => {
     try {
         const refreshTokenFromCookie = req.cookies?.refresh_token;
         const { accessToken } = await userService.refreshTokenService(refreshTokenFromCookie);
@@ -101,22 +91,22 @@ const refreshToken = async (req, res) => {
                 accessToken,
             }
         });
-    } catch (err) {
-        console.log(err);
-        return res.status(err.status).json({ message: err.message });
-    }
+    } catch (err) { next(err) }
 }
 
-const getUsers = async (req, res) => {
-    const user = await userService.getAllUserService();
-    console.log(user);
-    res.status(StatusCodes.OK).json({
-        message: "Get user successfull",
-        data: user
-    });
+const getUsers = async (req, res, next) => {
+    try {
+        const user = await userService.getAllUserService();
+        console.log(user);
+        res.status(StatusCodes.OK).json({
+            message: "Get user successfull",
+            data: user
+        });
+    } catch (err) { next(err) }
+
 }
 
-const getUserById = async (req, res) => {
+const getUserById = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = await userService.getUserByIdService(id);
@@ -124,29 +114,20 @@ const getUserById = async (req, res) => {
             message: "Get user by id successfully",
             data: user
         });
-    } catch (err) {
-        console.log(err);
-        return res.status(err.status || StatusCodes.INTERNAL_SERVER_ERROR).json({
-            message: err.message || "Internal server error"
-        });
-    }
+    } catch (err) { next(err); }
 }
 
-const getMe = async (req, res) => {
+const getMe = async (req, res, next) => {
     try {
         console.log(req.jwtDecoder);
         const user = await userService.getMeService(req.jwtDecoder.user_id);
         return res.status(StatusCodes.OK).json({
             user
         })
-    } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            message: error.message || "Lỗi server"
-        })
-    }
+    } catch (error) { next(err); }
 }
 
-const toggleSavePost = async (req, res) => {
+const toggleSavePost = async (req, res, next) => {
     try {
         const user_id = req.jwtDecoder.user_id;
         const { postId } = req.body;
@@ -162,11 +143,7 @@ const toggleSavePost = async (req, res) => {
             message: result.message,
             status: result.status
         });
-    } catch (error) {
-        return res.status(error.status || StatusCodes.INTERNAL_SERVER_ERROR).json({
-            message: error.message || "Lỗi server"
-        });
-    }
+    } catch (error) { next(err); }
 }
 
 export const userController = {

@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import { postService } from "../service/post.service.js";
 
-const createPost = async (req, res) => {
+const createPost = async (req, res, next) => {
     try {
         const { title, content, thumbnail, is_published } = req.body;
         console.log(req.body);
@@ -25,11 +25,7 @@ const createPost = async (req, res) => {
             message: "Đăng bài thành công",
             data: result
         });
-    } catch (error) {
-        return res.status(StatusCodes.BAD_REQUEST).json({
-            message: error.message
-        });
-    }
+    } catch (err) { next(err); }
 };
 
 // const getPosts = async (req, res) => {
