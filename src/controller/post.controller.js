@@ -4,13 +4,6 @@ import { postService } from "../service/post.service.js";
 const createPost = async (req, res, next) => {
     try {
         const { title, content, thumbnail, is_published } = req.body;
-        console.log(req.body);
-        if (!title || !content) {
-            return res.status(StatusCodes.BAD_REQUEST).json({
-                message: "Thiếu tiêu đề hoặc nội dung"
-            });
-        }
-
         const data = {
             title,
             content,
@@ -18,7 +11,6 @@ const createPost = async (req, res, next) => {
             is_published,
             author: req.jwtDecoder.user_id
         }
-        // console.log(data);
         const result = await postService.createPostService(data);
 
         return res.status(StatusCodes.OK).json({

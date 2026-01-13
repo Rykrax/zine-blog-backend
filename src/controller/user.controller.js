@@ -73,6 +73,21 @@ const changePassword = async (req, res, next) => {
     } catch (err) { next(err); }
 }
 
+const updateProfile = async (req, res, next) => {
+    try {
+        const data = {
+            ...req.body,
+            user_id: req.jwtDecoder.user_id
+        }
+        const user = await userService.updateProfileService(data);
+        console.log(user);
+        res.status(StatusCodes.OK).json({
+            message: "Cập nhật thành công",
+            user
+        })
+    } catch (err) { next(err); }
+}
+
 const refreshToken = async (req, res, next) => {
     try {
         const refreshTokenFromCookie = req.cookies?.refresh_token;
@@ -155,5 +170,6 @@ export const userController = {
     getUsers,
     getUserById,
     getMe,
-    toggleSavePost
+    toggleSavePost,
+    updateProfile
 }

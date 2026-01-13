@@ -270,6 +270,85 @@ const deleteUserService = async (user_id) => {
     }
 }
 
+const updateProfileService = async (data) => {
+    const { user_id, username, bio, avatar } = data;
+    const user = await User.findById(user_id);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+    }
+    const updates = {};
+
+    if (username !== undefined) {
+        const newUsername = username.trim();
+
+        if (newUsername === '') {
+            throw new ApiError(
+                StatusCodes.BAD_REQUEST,
+                'Có lỗi xảy ra'
+            );
+        }
+
+        if (newUsername !== user.username) {
+            const existedUser = await User.findOne({
+                username: newUsername,
+                _id: { $ne: user_id }
+            });
+
+            if (existedUser) {
+                throw new ApiError(
+                    StatusCodes.CONFLICT,
+                    'Username đã tồn tại'
+                );
+            }
+
+            updates.username = newUsername;
+        }
+    }
+
+    if (bio !== undefined) {
+        const newBio = typeof bio === 'string' ? bio.trim() : bio;
+
+        if (newBio !== user.bio) {
+            updates.bio = newBio;
+        }
+    }
+
+    if (avatar !== undefined) {
+        const newAvatar = avatar.trim();
+
+        if (newAvatar === '') {
+            throw new ApiError(
+                StatusCodes.BAD_REQUEST,
+                'Có lỗi xảy ra'
+            );
+        }
+
+        if (!newAvatar.includes('cloudinary.com')) {
+            throw new ApiError(
+                StatusCodes.BAD_REQUEST,
+                'Có lỗi xảy ra'
+            );
+        }
+
+        if (newAvatar !== user.avatar) {
+            updates.avatar = newAvatar;
+        }
+    }
+
+    // if (Object.keys(updates).length === 0) {
+    //     throw new ApiError(
+    //         StatusCodes.BAD_REQUEST,
+    //         'Không có dữ liệu nào để cập nhật'
+    //     );
+    // }
+
+    return await User.findByIdAndUpdate(
+        user_id,
+        updates,
+        { new: true }
+    ).select('_id email username avatar role bio saved_posts');
+}
+
 export const userService = {
     createUserService,
     loginService,
@@ -279,5 +358,6 @@ export const userService = {
     getUserByIdService,
     getMeService,
     toggleSavePostService,
-    deleteUserService
+    deleteUserService,
+    updateProfileService
 }

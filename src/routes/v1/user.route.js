@@ -9,5 +9,5 @@ router.get("/users/:id", authMiddleware.isAuthorized, userController.getUserById
 router.get("/me", authMiddleware.isAuthorized, userController.getMe);
 router.put("/change-password", authMiddleware.isAuthorized, userController.changePassword);
 router.post("/save-post", authMiddleware.isAuthorized, userController.toggleSavePost);
-
+router.put("/update-profile", authMiddleware.isAuthorized, userController.updateProfile);
 export default router;
