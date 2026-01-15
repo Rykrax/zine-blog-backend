@@ -1,11 +1,12 @@
 import express from "express"
 import { authMiddleware } from "../../middleware/authMiddleware.js";
 import { postController } from "../../controller/post.controller.js";
+import { commentController } from "../../controller/comment.controller.js";
 
 const router = express.Router();
 
 router.get("/posts", postController.getPosts);
-router.get("/posts/:slug", postController.getPostDetail);
+router.get("/posts/:slug-:postId", postController.getPostDetail);
 
 // router.get(
 //     "/posts/:id",
@@ -18,6 +19,10 @@ router.post(
     authMiddleware.isAuthorized,
     postController.createPost
 );
-
+router.get(
+    "/posts/:slug-:postId/comment",
+    authMiddleware.isAuthorized,
+    commentController.getComment
+)
 
 export default router;

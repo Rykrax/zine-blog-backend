@@ -11,11 +11,11 @@ const createPost = async (req, res, next) => {
             is_published,
             author: req.jwtDecoder.user_id
         }
-        const result = await postService.createPostService(data);
+        const post = await postService.createPostService(data);
 
         return res.status(StatusCodes.OK).json({
             message: "Đăng bài thành công",
-            data: result
+            data: post
         });
     } catch (err) { next(err); }
 };
@@ -44,9 +44,15 @@ const createPost = async (req, res, next) => {
 const getPosts = async (req, res) => {
     try {
         const posts = await postService.getAllPostService(req.query);
+
+        const items = posts.items.map(post => ({
+            ...post.toObject(),
+            fullSlug: `${post.slug}-${post._id}`
+        }));
+
         return res.status(StatusCodes.OK).json({
             message: "Load dữ liệu thành công",
-            data: posts.items,
+            data: items,
             pagination: posts.pagination
         });
     } catch (error) {
@@ -58,8 +64,8 @@ const getPosts = async (req, res) => {
 
 const getPostDetail = async (req, res) => {
     try {
-        const { slug } = req.params;
-        const post = await postService.getPostDetailService(slug);
+        const { postId } = req.params;
+        const post = await postService.getPostDetailService(postId);
         if (!post) {
             return res.status(StatusCodes.NOT_FOUND).json({
                 message: "Bài viết không tồn tại"

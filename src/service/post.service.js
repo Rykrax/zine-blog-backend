@@ -117,8 +117,16 @@ const getAllPostService = async (query) => {
 };
 
 
-const getPostDetailService = async (slug) => {
-    const post = await Post.findOne({ slug, is_published: true }).populate("author", "username avatar bio");
+// const getPostDetailService = async (slug) => {
+//     const post = await Post.findOne({ slug, is_published: true }).populate("author", "username avatar bio");
+//     return post;
+// }
+
+const getPostDetailService = async (post_id) => {
+    const post = await Post.findOne({
+        _id: post_id,
+        is_published: true
+    }).populate("author", "username avatar bio");
     return post;
 }
 
