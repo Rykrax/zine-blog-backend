@@ -6,7 +6,7 @@ import Comment from "../model/comment.js";
 import { paginate } from "../util/paginate.js";
 
 const createCommentService = async (data) => {
-    console.log(data);
+    // console.log(data);
     const { user_id, content, post_id } = data;
     if (!mongoose.Types.ObjectId.isValid(user_id)) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Có lỗi xảy ra1");

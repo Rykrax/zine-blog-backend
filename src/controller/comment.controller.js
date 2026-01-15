@@ -3,10 +3,13 @@ import { commentService } from "../service/comment.service.js";
 
 const createComment = async (req, res, next) => {
     try {
+        const { postId } = req.params;
         const data = {
             ...req.body,
+            post_id: postId,
             user_id: req.jwtDecoder.user_id
         }
+        console.log(data);
         const comment = await commentService.createCommentService(data);
         // console.log(comment);
         res.status(StatusCodes.OK).json({

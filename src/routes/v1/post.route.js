@@ -25,4 +25,10 @@ router.get(
     commentController.getComment
 )
 
+router.post(
+    "/posts/:slug-:postId/comment",
+    authMiddleware.isAuthorized,
+    commentController.createComment
+)
+
 export default router;
