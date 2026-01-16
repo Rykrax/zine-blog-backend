@@ -4,6 +4,7 @@ import User from '../model/user.js';
 
 const isAuthorized = async (req, res, next) => {
     const accessToken = req.cookies?.access_token;
+    console.log(req.cookie);
     console.log(`Access token from cookie: ${req.cookies.access_token}`);
     if (!accessToken) {
         res.status(StatusCodes.BAD_REQUEST).json({
