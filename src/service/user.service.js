@@ -503,6 +503,10 @@ const updateUserRoleService = async (user_id, admin_id, role) => {
     if (!user) {
         throw new ApiError(StatusCodes.NOT_FOUND, "Không tìm thấy user");
     }
+    if (user_id === admin_id) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Không thể sửa role bản thân");
+
+    }
     const updateUser = await User.findByIdAndUpdate(
         user_id,
         { role },
