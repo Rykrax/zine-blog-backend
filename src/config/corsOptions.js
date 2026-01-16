@@ -13,7 +13,7 @@ export const corsOptions = {
         const allowedOrigins = [
             'http://localhost:5173',
             'http://localhost:3000',
-            'https://zine-blog.vercel.app/'
+            'https://zine-blog.vercel.app'
         ];
 
         if (!origin) return callback(null, true);
