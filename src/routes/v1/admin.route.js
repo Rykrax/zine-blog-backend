@@ -1,26 +1,12 @@
 import express from 'express'
-import { rbacMiddleware } from '../../middleware/rbacMiddleware.js';
-import { authMiddleware } from '../../middleware/authMiddleware.js';
 import { adminController } from '../../controller/admin/admin.user.controller.js';
 
 const router = express.Router();
 
-router.get("/users/",
-    authMiddleware.isAuthorized,
-    rbacMiddleware.isValidPermission(['admin']),
-    adminController.getUsers
-)
-
-router.get("/users/:id",
-    authMiddleware.isAuthorized,
-    rbacMiddleware.isValidPermission(['admin']),
-    adminController.getUserById
-);
-
-router.put("/users/:id",
-    authMiddleware.isAuthorized,
-    rbacMiddleware.isValidPermission(['admin']),
-    adminController.deleteUser
-);
+router.get("/users/", adminController.getUsers)
+router.get("/users/:id", adminController.getUserById);
+router.patch("/users/:id/status", adminController.updateUserStatus);
+router.patch("/users/:id/role", adminController.updateUserRole);
+router.delete("/users/:id", adminController.softDeleteUser);
 
 export default router;

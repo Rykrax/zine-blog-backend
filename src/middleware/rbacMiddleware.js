@@ -7,7 +7,7 @@ const isValidPermission = (allowedRoles) => async (req, res, next) => {
         const userRole = req.jwtDecoder.role;
         if (!userRole || !allowedRoles.includes(userRole)) {
             res.status(StatusCodes.FORBIDDEN).json({
-                message: "You are not allowed to access this API"
+                message: "Bạn không có quyền truy cập. Quyền admin đã bị thu hồi."
             });
             return;
         }

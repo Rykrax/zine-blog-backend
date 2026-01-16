@@ -26,13 +26,39 @@ const getUserById = async (req, res) => {
     }
 }
 
-const deleteUser = async (req, res) => {
+const updateUserStatus = async (req, res, next) => {
+    try {
+        const { id: user_id } = req.params;
+        const admin_id = req.jwtDecoder?.user_id;
+        const { status, banReason } = req.body;
+
+        const user = await userService.updateUserStatusService({
+            user_id,
+            admin_id,
+            status,
+            banReason
+        });
+
+        res.status(StatusCodes.OK).json(user);
+    } catch (err) { next(err); }
+}
+
+const updateUserRole = async (req, res, next) => {
+    try {
+        const { id: user_id } = req.params;
+        const { role } = req.body;
+        const admin_id = req.jwtDecoder?.user_id;
+        const user = await userService.updateUserRoleService(user_id, admin_id, role);
+        res.status(StatusCodes.OK).json(user);
+    } catch (err) { next(err); }
+}
+
+const softDeleteUser = async (req, res) => {
     try {
         const { id } = req.params;
-        await userService.deleteUserService(id);
-        return res.status(StatusCodes.NO_CONTENT).json({
-            message: "Xóa thành công"
-        })
+        const admin_id = req.jwtDecoder?.user_id;
+        await userService.deleteUserService(id, admin_id);
+        return res.status(StatusCodes.NO_CONTENT).end();
     } catch (error) {
         return res.status(error.status || StatusCodes.INTERNAL_SERVER_ERROR).json({
             message: error.message || "Internal server error"
@@ -43,5 +69,7 @@ const deleteUser = async (req, res) => {
 export const adminController = {
     getUsers,
     getUserById,
-    deleteUser
+    updateUserStatus,
+    updateUserRole,
+    softDeleteUser
 }

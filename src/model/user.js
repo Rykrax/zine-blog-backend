@@ -39,8 +39,40 @@ const UserSchema = new Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
-    isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date, default: null }
+
+    status: {
+        type: String,
+        enum: ["active", "banned", "deleted"],
+        default: "active",
+        index: true
+    },
+
+    bannedAt: {
+        type: Date,
+        default: null
+    },
+
+    bannedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+
+    banReason: {
+        type: String,
+        default: ""
+    },
+
+    deletedAt: {
+        type: Date,
+        default: null
+    },
+
+    deletedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    }
 }, {
     timestamps: true
 });

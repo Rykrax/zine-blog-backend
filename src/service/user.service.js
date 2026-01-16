@@ -54,6 +54,15 @@ const loginService = async (email, password) => {
     if (!user) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, "Email/Mật khẩu không chính xác");
     }
+
+    if (user.status === "banned" || user.status === "deleted") {
+        throw new ApiError(StatusCodes.FORBIDDEN, "Tài khoản không còn quyền truy cập");
+    }
+
+    if (user.status !== 'active') {
+        throw new ApiError(StatusCodes.FORBIDDEN, "Tài khoản không hợp lệ");
+    }
+
     const isMatching = await bcrypt.compare(password, user.password);
     if (!isMatching) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, "Email/Password không chính xác");
@@ -172,7 +181,9 @@ const refreshTokenService = async (refreshToken) => {
 }
 
 const getAllUserService = async () => {
-    return await User.find({ isDeleted: { $ne: true } }).select("-password");
+    return await User.find({
+        status: { $in: ['active', 'banned'] }
+    }).select("-password");
 }
 
 const getUserByIdService = async (_id) => {
@@ -189,6 +200,9 @@ const getUserByIdService = async (_id) => {
         });;
 
     if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "User không tồn tại");
+    }
+    if (user.status === 'deleted') {
         throw new ApiError(StatusCodes.NOT_FOUND, "User không tồn tại");
     }
     return user;
@@ -255,19 +269,20 @@ const toggleSavePostService = async (user_id, post_id) => {
     }
 }
 
-const deleteUserService = async (user_id) => {
+const deleteUserService = async (user_id, admin_id) => {
     const user = await User.findById(user_id);
     if (!user) {
         throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
     }
     await User.findByIdAndUpdate(
         user_id,
-        { isDeleted: true, deletedAt: new Date() },
+        {
+            status: 'deleted',
+            deletedAt: new Date(),
+            deletedBy: admin_id
+        },
         { new: true }
-    )
-    return {
-        message: "Xóa thành công"
-    }
+    );
 }
 
 const updateProfileService = async (data) => {
@@ -349,6 +364,153 @@ const updateProfileService = async (data) => {
     ).select('_id email username avatar role bio saved_posts');
 }
 
+// const banUserService = async (data) => {
+//     const { user_id, admin_id, reason } = data;
+//     if (!mongoose.Types.ObjectId.isValid(user_id)) {
+//         throw new ApiError(StatusCodes.BAD_REQUEST, "ID không hợp lệ");
+//     }
+//     if (!mongoose.Types.ObjectId.isValid(admin_id)) {
+//         throw new ApiError(StatusCodes.BAD_REQUEST, "ID không hợp lệ");
+//     }
+//     const user = await User.findById(user_id);
+//     if (!user) {
+//         throw new ApiError(StatusCodes.NOT_FOUND, "Không tìm thấy user");
+//     }
+//     if (user.status === "banned") {
+//         throw new ApiError(StatusCodes.BAD_REQUEST, "User đã bị khóa");
+//     }
+//     if (user.status === "deleted") {
+//         throw new ApiError(StatusCodes.BAD_REQUEST, "User đã bị xóa");
+//     }
+//     // if (user.role === "admin") {
+//     //     throw new ApiError(StatusCodes.FORBIDDEN, "Không thể khóa admin");
+//     // }
+//     // if (user_id === admin_id) {
+//     //     throw new ApiError(StatusCodes.FORBIDDEN, "Không thể khóa chính mình");
+//     // }
+//     const updateUser = await User.findByIdAndUpdate(
+//         user_id,
+//         {
+//             status: "banned",
+//             bannedAt: new Date(),
+//             bannedBy: admin_id,
+//             banReason: reason.trim()
+//         },
+//         { new: true }
+//     ).select("-password");
+//     return updateUser;
+// }
+
+// const unbanUserService = async (user_id) => {
+//     if (!mongoose.Types.ObjectId.isValid(user_id)) {
+//         throw new ApiError(StatusCodes.BAD_REQUEST, "ID không hợp lệ");
+//     }
+//     const user = await User.findById(user_id);
+//     if (!user) {
+//         throw new ApiError(StatusCodes.NOT_FOUND, "Không tìm thấy user");
+//     }
+//     if (user.status === "deleted") {
+//         throw new ApiError(StatusCodes.BAD_REQUEST, "User đã bị xóa");
+//     }
+//     if (user.status === "active") {
+//         throw new ApiError(StatusCodes.BAD_REQUEST, "User không trong trạng thái bị khóa");
+//     }
+//     const updatedUser = await User.findByIdAndUpdate(
+//         user_id,
+//         {
+//             status: 'active',
+//             bannedAt: null,
+//             bannedBy: null,
+//             banReason: ""
+//         },
+//         { new: true }
+//     ).select('-password');
+
+//     return updatedUser;
+// }
+
+const updateUserStatusService = async (data) => {
+    const { user_id, admin_id, status, banReason } = data;
+
+    if (!mongoose.Types.ObjectId.isValid(user_id)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User ID không hợp lệ");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(admin_id)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Admin ID không hợp lệ");
+    }
+    if (!["active", "banned"].includes(status)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Status không hợp lệ");
+    }
+
+    const user = await User.findById(user_id);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Không tìm thấy user");
+    }
+    if (user.status === "deleted") {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User đã bị xóa");
+    }
+
+    const update = {};
+
+    if (status === "banned") {
+        if (user.status === "banned") {
+            throw new ApiError(StatusCodes.BAD_REQUEST, "User đã bị khóa");
+        }
+
+        if (user_id.toString() === admin_id.toString()) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, "Không thể khóa chính mình");
+        }
+
+        update.status = "banned";
+        update.bannedAt = new Date();
+        update.bannedBy = admin_id;
+        update.banReason = banReason?.trim() ?? "";
+    }
+
+    if (status === "active") {
+        if (user.status === "active") {
+            throw new ApiError(
+                StatusCodes.BAD_REQUEST,
+                "User không trong trạng thái bị khóa"
+            );
+        }
+
+        update.status = "active";
+        update.bannedAt = null;
+        update.bannedBy = null;
+        update.banReason = "";
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        user_id,
+        update,
+        { new: true }
+    ).select("-password");
+
+    return updatedUser;
+}
+
+const updateUserRoleService = async (user_id, admin_id, role) => {
+    const ALLOW_ROLES = ["user", "admin"];
+    if (!ALLOW_ROLES.includes(role)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Role không hợp lệ");
+    }
+    if (!mongoose.Types.ObjectId.isValid(user_id)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "User không hợp lệ");
+    }
+    const user = await User.findById(user_id);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Không tìm thấy user");
+    }
+    const updateUser = await User.findByIdAndUpdate(
+        user_id,
+        { role },
+        { new: true }
+    ).select("-password");
+    return updateUser;
+}
+
 export const userService = {
     createUserService,
     loginService,
@@ -359,5 +521,7 @@ export const userService = {
     getMeService,
     toggleSavePostService,
     deleteUserService,
-    updateProfileService
+    updateProfileService,
+    updateUserStatusService,
+    updateUserRoleService
 }
