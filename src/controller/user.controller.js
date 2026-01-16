@@ -20,14 +20,14 @@ const login = async (req, res, next) => {
         res.cookie('access_token', accessToken, {
             httpOnly: true,
             secure: isProd,
-            sameSite: isProd ? 'none' : 'lax',
+            sameSite: isProd ? 'strict' : 'lax',
             maxAge: ms('7d')
         });
 
         res.cookie('refresh_token', refreshToken, {
             httpOnly: true,
             secure: isProd,
-            sameSite: isProd ? 'none' : 'lax',
+            sameSite: isProd ? 'strict' : 'lax',
             maxAge: ms('7d')
         });
 
@@ -48,13 +48,13 @@ const logout = async (req, res) => {
     res.clearCookie("access_token", {
         httpOnly: true,
         secure: isProd,
-        sameSite: isProd ? "none" : "lax"
+        sameSite: isProd ? "strict" : "lax"
     });
 
     res.clearCookie("refresh_token", {
         httpOnly: true,
         secure: isProd,
-        sameSite: isProd ? "none" : "lax"
+        sameSite: isProd ? "strict" : "lax"
     });
 
     return res.status(StatusCodes.OK).json({
@@ -97,7 +97,7 @@ const refreshToken = async (req, res, next) => {
         res.cookie('access_token', accessToken, {
             httpOnly: true,
             secure: isProd,
-            sameSite: isProd ? 'none' : 'lax',
+            sameSite: isProd ? 'strict' : 'lax',
             maxAge: ms('7d')
         });
         res.status(StatusCodes.OK).json({
