@@ -53,6 +53,22 @@ const updateUserRole = async (req, res, next) => {
     } catch (err) { next(err); }
 }
 
+const updateUserProfile = async (req, res, next) => {
+    try {
+        const { id: user_id } = req.params;
+        const data = {
+            ...req.body,
+            user_id
+        }
+        const user = await userService.updateProfileService(data);
+        console.log(user);
+        res.status(StatusCodes.OK).json({
+            message: "Cập nhật thành công",
+            user
+        })
+    } catch (err) { next(err); }
+}
+
 const softDeleteUser = async (req, res) => {
     try {
         const { id } = req.params;
@@ -71,5 +87,6 @@ export const adminController = {
     getUserById,
     updateUserStatus,
     updateUserRole,
+    updateUserProfile,
     softDeleteUser
 }
